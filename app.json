@@ -7,7 +7,7 @@
     "en": "monitor your Netgear router",
     "nl": "verbind je Netgear router"
   },
-  "version": "0.0.1",
+  "version": "0.0.3",
 	"sdk": 2,
   "compatibility": ">= 1.5",
   "author": {
@@ -218,5 +218,110 @@
 				}
 			]
 		}
-	]
+	],
+	"flow": {
+	    "triggers": [
+	        {
+	            "id": "connection_start",
+	            "title": {
+	                "en": "The internet got connected"
+	            },
+	            "args": [
+					{
+						"name": "netgear",
+						"type": "device",
+						"filter": "driver_id=netgear"
+					}
+                ]
+		    },
+		    {
+	            "id": "connection_stop",
+	            "title": {
+	                "en": "The internet got disconnected"
+	            },
+	            "args": [
+					{
+						"name": "netgear",
+						"type": "device",
+						"filter": "driver_id=netgear"
+					}
+                ]
+			},
+	        {
+	            "id": "uldl_speed_changed",
+	            "title": {
+	                "en": "The up/down speed changed"
+	            },
+	            "args": [
+					{
+						"name": "netgear",
+						"type": "device",
+						"filter": "driver_id=netgear"
+					}
+                ],
+	            "tokens": [
+	                {
+	                    "name": "upload_speed",
+	                    "type": "number",
+	                    "title": {
+	                        "en": "Up"
+	                    },
+	                    "example": 5
+	                },
+	                {
+	                    "name": "download_speed",
+	                    "type": "number",
+	                    "title": {
+	                        "en": "Down"
+	                    },
+	                    "example": 1
+	                }
+			   ]
+			}
+
+	    ],
+	    "actions": [
+			{
+				"id": "block_device",
+				"title": {
+					"en": "Block a device"
+				},
+				"args": [
+					{
+						"name": "device",
+						"type": "device",
+						"filter": "driver_id=netgear"
+					},
+				    {
+				        "type": "text",
+				        "name": "mac",
+				        "placeholder": {
+				            "en": "AA:BB:CC:DD:EE:FF"
+				        }
+				    }
+				]
+			},
+			{
+				"id": "allow_device",
+				"title": {
+					"en": "Allow a device"
+				},
+				"args": [
+					{
+						"name": "device",
+						"type": "device",
+						"filter": "driver_id=netgear"
+					},
+				    {
+				        "type": "text",
+				        "name": "mac",
+				        "placeholder": {
+				            "en": "AA:BB:CC:DD:EE:FF"
+				        }
+				    }
+				]
+			}
+		]
+
+	}
 }
