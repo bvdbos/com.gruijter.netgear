@@ -7,7 +7,6 @@
     "en": "monitor your Netgear router",
     "nl": "verbind je Netgear router"
   },
-  "version": "0.0.3",
 	"sdk": 2,
   "compatibility": ">= 1.5",
   "author": {
@@ -224,7 +223,8 @@
 	        {
 	            "id": "connection_start",
 	            "title": {
-	                "en": "The internet got connected"
+	                "en": "The internet got connected",
+									"nl": "Internet verbinding gemaakt"
 	            },
 	            "args": [
 					{
@@ -237,7 +237,8 @@
 		    {
 	            "id": "connection_stop",
 	            "title": {
-	                "en": "The internet got disconnected"
+	                "en": "The internet got disconnected",
+									"nl": "Internet verbinding verbroken"
 	            },
 	            "args": [
 					{
@@ -250,7 +251,8 @@
 	        {
 	            "id": "uldl_speed_changed",
 	            "title": {
-	                "en": "The up/down speed changed"
+	                "en": "The up/down speed changed",
+									"nl": "Up/down snelheid gewijzigd"
 	            },
 	            "args": [
 					{
@@ -264,7 +266,8 @@
 	                    "name": "upload_speed",
 	                    "type": "number",
 	                    "title": {
-	                        "en": "Up"
+	                        "en": "Up",
+													"nl": "Up"
 	                    },
 	                    "example": 5
 	                },
@@ -272,7 +275,8 @@
 	                    "name": "download_speed",
 	                    "type": "number",
 	                    "title": {
-	                        "en": "Down"
+	                        "en": "Down",
+													"nl": "Down"
 	                    },
 	                    "example": 1
 	                }
@@ -284,7 +288,8 @@
 			{
 				"id": "block_device",
 				"title": {
-					"en": "Block a device"
+					"en": "Block a device",
+					"nl": "Device blokkeren"
 				},
 				"args": [
 					{
@@ -304,7 +309,8 @@
 			{
 				"id": "allow_device",
 				"title": {
-					"en": "Allow a device"
+					"en": "Allow a device",
+					"nl": "Device vrijgeven"
 				},
 				"args": [
 					{
@@ -319,6 +325,20 @@
 				            "en": "AA:BB:CC:DD:EE:FF"
 				        }
 				    }
+				]
+			},
+			{
+				"id": "reboot",
+				"title": {
+					"en": "Reboot router",
+					"nl": "Herstart router"
+				},
+				"args": [
+					{
+						"name": "device",
+						"type": "device",
+						"filter": "driver_id=netgear"
+					}
 				]
 			}
 		]

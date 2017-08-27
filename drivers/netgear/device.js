@@ -13,25 +13,7 @@ const internetDisconnectedTrigger = new Homey.FlowCardTriggerDevice('connection_
 internetDisconnectedTrigger.register();
 
 
-function getRouterData(routerSession) {
-	let readings = {};
-	readings.timestamp = new Date ();
-	return new Promise ( async (resolve, reject) => {
-		try {
-			// get new data from router
-			readings.currentSetting = await routerSession.getCurrentSetting();
-			readings.info = await routerSession.getInfo();
-			readings.attachedDevices = await routerSession.getAttachedDevices();
-			readings.trafficMeter = await routerSession.getTrafficMeter();
-			resolve(readings);
-		} catch (error) {
-			console.log(error);
-			reject(error);
-			}
-	});
-}
-
-async function updateRouterState() {   // call with router device as this
+async function updateRouterDeviceState() {   // call with router device as this
 	try {
 		// init some values
 		let lastTrafficMeter = this.readings.trafficMeter || {};
@@ -41,14 +23,11 @@ async function updateRouterState() {   // call with router device as this
 			lastTrafficMeter.newTodayUpload = 0;
 			lastTimestamp = new Date ();
 		}
-
 		// get new readings from router
-		this.readings = await getRouterData(this.routerSession);
-
+		this.readings = await this._driver.getRouterData.call(this);
 		// calculate speed
 		const downloadSpeed = Math.round(100 * 1000 * 8 * (lastTrafficMeter.newTodayDownload - this.readings.trafficMeter.newTodayDownload) / (lastTimestamp - this.readings.timestamp)) / 100;
 		const uploadSpeed = Math.round(100 * 1000 * 8 * (lastTrafficMeter.newTodayUpload - this.readings.trafficMeter.newTodayUpload) / (lastTimestamp - this.readings.timestamp)) / 100;
-
 		// update capability values and flowcards
 		this.setCapabilityValue('internet_connection_status', this.readings.currentSetting.InternetConnectionStatus==='Up');
 		if (this.readings.currentSetting.InternetConnectionStatus==='Up') {
@@ -76,7 +55,6 @@ async function updateRouterState() {   // call with router device as this
 			        .catch(this.error)
  			        // .then( this.log )
 		}
-
 		// update settings info when firmware has changed
 		const settings = this.getSettings();
 		if (this.readings.info.Firmwareversion != settings.firmware_version) {
@@ -89,68 +67,62 @@ async function updateRouterState() {   // call with router device as this
 			    // .then( this.log )
 			    .catch( this.error )
 		}
-
 	} catch (error) {
-		console.log(error);
+		this.log('updateRouterDeviceState error', error);
 		}
 
 }
 
-async function blockOrAllow(mac, action) {   // call with router device as this
-	try {
-		 await this.routerSession.login();
-		 await this.routerSession.configurationStarted();
-		 await this.routerSession.setBlockDevice(mac, action);
-		 await this.routerSession.configurationFinished();
-	}
-	catch (error) {
-		console.log(error);
-	}
-}
-
-class NetgearRouterDevice extends Homey.Device {
+class NetgearDevice extends Homey.Device {
 
   // this method is called when the Device is inited
 	onInit() {
 		this.log('device init');
 		this.log('name:', this.getName());
 		this.log('id:', this.getData().id);
-		this.readings = {};
 
 		// console.log(util.inspect(this));
 		const settings = this.getSettings();
 		this.routerSession = new NetgearRouter(settings.password, settings.host, settings.username, settings.port);
-		console.log(this.routerSession);
+
+		// console.log(this.routerSession);
+		this._driver = this.getDriver();
+		this.readings = {};
 
 		// register action flow cards
 		const blockDevice = new Homey.FlowCardAction('block_device');
-		    blockDevice.register()
-		        .on('run', ( args, state, callback ) => {
-					// console.log(args);  //args.mac and args.device
-					// console.log(state);
-					blockOrAllow.call(this, args.mac, 'Block');
-					callback( null, true );
-		            // ...
-		        });
+		blockDevice.register()
+			.on('run', ( args, state, callback ) => {
+			// console.log(args);  //args.mac and args.device
+			// console.log(state);
+				this._driver.blockOrAllow.call(this, args.mac, 'Block');
+				callback( null, true );
+			});
 
 		const allowDevice = new Homey.FlowCardAction('allow_device');
-		    allowDevice.register()
-		        .on('run', ( args, state, callback ) => {
-					// console.log(args);
-					// console.log(state);
-					blockOrAllow.call(this, args.mac, 'Allow');
-					callback( null, true );
-		            // ...
-		        })
+		allowDevice.register()
+			.on('run', ( args, state, callback ) => {
+			// console.log(args);
+			// console.log(state);
+				this._driver.blockOrAllow.call(this, args.mac, 'Allow');
+				callback( null, true );
+			});
+
+		const reboot = new Homey.FlowCardAction('reboot');
+		reboot.register()
+			.on('run', ( args, state, callback ) => {
+			// console.log(args);  //args.mac and args.device
+			// console.log(state);
+				this._driver.reboot.call(this);
+				callback( null, true );
+			});
 
 		// start polling router for info
-		this.intervalIdDevicePoll = setInterval( async () => {
-
+		this.intervalIdDevicePoll = setInterval( () => {
 			try {
-				// get new routerdata and updat the state
-				updateRouterState.call(this);
-			} catch (error) { console.log(error); }
-
+				// get new routerdata and update the state
+				updateRouterDeviceState.call(this);
+			} catch (error) { this.log('intervalIdDevicePoll error', error); }
 		}, 1000 * settings.polling_interval);
 
 	}
@@ -169,15 +141,16 @@ class NetgearRouterDevice extends Homey.Device {
 
 	// this method is called when the user has changed the device's settings in Homey.
 	onSettings( newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
-			// first stop polling the device, then start init after short delay
-			clearInterval(this.intervalIdDevicePoll);
-			setTimeout( () => {
-				this.onInit();
-			}, 10000);
-			// do callback to confirm settings change
-	    callback( null, true );
+		// first stop polling the device, then start init after short delay
+		clearInterval(this.intervalIdDevicePoll);
+		setTimeout( () => {
+			this.onInit();
+		}, 10000);
+		// do callback to confirm settings change
+		callback( null, true );
 	}
+
 
 }
 
-module.exports = NetgearRouterDevice;
+module.exports = NetgearDevice;

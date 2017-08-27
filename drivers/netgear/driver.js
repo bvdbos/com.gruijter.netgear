@@ -5,27 +5,68 @@ const NetgearRouter = require('netgear.js');
 // const util = require('util');
 
 
-class MyDriver extends Homey.Driver {
+class NetgearDriver extends Homey.Driver {
 
 	onInit() {
-		console.log('driver init');
+		this.log('NetgearDriver onInit');
 		// console.log(util.inspect(this.getDevices()));
+	}
+
+	getRouterData() {		// call with NetgearDevice as this
+		let readings = {};
+		readings.timestamp = new Date ();
+		return new Promise ( async (resolve, reject) => {
+			try {
+				// get new data from router
+				readings.currentSetting = await this.routerSession.getCurrentSetting();
+				readings.info = await this.routerSession.getInfo();
+				readings.attachedDevices = await this.routerSession.getAttachedDevices();
+				readings.trafficMeter = await this.routerSession.getTrafficMeter();
+				resolve(readings);
+			} catch (error) {
+					this.log('getRouterData error', error);
+					reject(error);
+				}
+		});
+	}
+
+	async blockOrAllow(mac, action) {   // call with NetgearDevice as this
+		try {
+			 await this.routerSession.login();
+			 await this.routerSession.configurationStarted();
+			 await this.routerSession.setBlockDevice(mac, action);
+			 await this.routerSession.configurationFinished();
+		}
+		catch (error) {
+			this.log('blockOrAllow error', error);
+		}
+	}
+
+	async reboot() {   // call with NetgearDevice as this
+		try {
+			 await this.routerSession.login();
+			 await this.routerSession.configurationStarted();
+			 await this.routerSession.reboot();
+			 await this.routerSession.configurationFinished();
+		}
+		catch (error) {
+			this.log('reboot error', error);
+		}
 	}
 
 	onPair(socket) {
 		socket.on('save', (data, callback) => {
 			const router = new NetgearRouter(data.password, data.host, data.username, Number(data.port));
-			console.log('save data received from frontend');
-			console.log(router);
+			this.log('save button pressed in frontend', router);
 			router.getInfo()
 				.then((result) => {
-					console.log(result);
+					// console.log(result);
 					if (result.hasOwnProperty('SerialNumber')) {
 						callback(null, JSON.stringify(result));
 					} else { callback(true, 'No Netgear Model found'); }
 				})
 				.catch((error) => {
-					console.log(error);
+					this.log('getInfo error', error);
 					callback(error, error);
 				});
 		});
@@ -58,6 +99,6 @@ class MyDriver extends Homey.Driver {
 
 }
 
-module.exports = MyDriver;
+module.exports = NetgearDriver;
 
 // console.log(util.inspect(router));
