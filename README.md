@@ -9,7 +9,7 @@ It allows you to
 * block and allow an attached device by MAC address
 * reboot the router
 
-[mobile-card-image]
+[![image][mobile-card-image]]
 
 ### Device setup in Homey ###
 To setup go to "Devices" and add the Netgear router by filling in the admin password. The other fields can be left on default, unless you know what you are doing :). It should be possible to add multiple netgear routers, but this is untested. After the router device is added successfully you can change the polling interval which is set to 1 minute as default.
