@@ -7,7 +7,7 @@
     "en": "monitor your Netgear router",
     "nl": "verbind je Netgear router"
   },
-  "version": "0.0.4",
+  "version": "0.0.5",
 	"sdk": 2,
   "compatibility": ">= 1.5",
   "author": {
@@ -20,7 +20,7 @@
     "small": "./assets/images/small.jpg"
   },
 
-  "category": [ "tools" ],
+  "category": [ "tools", "internet" ],
 
 	"capabilities": {
 			"internet_connection_status": {
@@ -127,8 +127,8 @@
 							"id": "host",
 							"type": "text",
 							"label": {
-								"en": "url or IP address",
-								"nl": "url of IP adres"
+								"en": "IP address",
+								"nl": "IP adres"
 							},
 							"value": "netgear.net"
 						},
