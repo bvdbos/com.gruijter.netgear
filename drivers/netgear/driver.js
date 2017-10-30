@@ -1,7 +1,7 @@
 'use strict';
 
 const Homey = require('homey');
-const NetgearRouter = require('netgear.js');
+const NetgearRouter = require('../../netgear.js');
 // const util = require('util');
 
 
@@ -12,19 +12,43 @@ class NetgearDriver extends Homey.Driver {
 		// console.log(util.inspect(this.getDevices()));
 	}
 
+	login()	{	// call with NetgearDevice as this
+		return new Promise ((resolve, reject) => {
+			this.routerSession.login()
+				.then((result) => {
+					this.log('login succsesfull @ driver');
+					this.setAvailable()
+						.catch(this.error);
+					resolve(result);
+				})
+				.catch((error) => {
+					this.log('Login error @ driver', error.message);
+					this.setUnavailable(error.message)
+						.catch(this.error);
+					reject(error);
+				});
+		});
+	}
+
 	getRouterData() {		// call with NetgearDevice as this
 		let readings = {};
-		readings.timestamp = new Date ();
 		return new Promise ( async (resolve, reject) => {
 			try {
 				// get new data from router
+				if (!this.routerSession.logged_in) {
+					await this._driver.login.call(this);
+				}
 				readings.currentSetting = await this.routerSession.getCurrentSetting();
 				readings.info = await this.routerSession.getInfo();
-				readings.attachedDevices = await this.routerSession.getAttachedDevices();
+				readings.attachedDevices = await this.routerSession.getAttachedDevices2();
 				readings.trafficMeter = await this.routerSession.getTrafficMeter();
+				readings.timestamp = new Date ();
+				// console.log(util.inspect(readings));
 				resolve(readings);
 			} catch (error) {
 					this.log('getRouterData error', error);
+					this.setUnavailable(error.message)
+						.catch(this.error);
 					reject(error);
 				}
 		});
@@ -32,10 +56,12 @@ class NetgearDriver extends Homey.Driver {
 
 	async blockOrAllow(mac, action) {   // call with NetgearDevice as this
 		try {
-			 await this.routerSession.login();
-			 await this.routerSession.configurationStarted();
-			 await this.routerSession.setBlockDevice(mac, action);
-			 await this.routerSession.configurationFinished();
+			if (!this.routerSession.logged_in) {
+				await this.routerSession.login();
+			}
+			await this.routerSession.configurationStarted();
+			await this.routerSession.setBlockDevice(mac, action);
+			await this.routerSession.configurationFinished();
 		}
 		catch (error) {
 			this.log('blockOrAllow error', error);
@@ -44,10 +70,10 @@ class NetgearDriver extends Homey.Driver {
 
 	async reboot() {   // call with NetgearDevice as this
 		try {
-			 await this.routerSession.login();
-			 await this.routerSession.configurationStarted();
-			 await this.routerSession.reboot();
-			 await this.routerSession.configurationFinished();
+			await this.routerSession.login();
+			await this.routerSession.configurationStarted();
+			await this.routerSession.reboot();
+			await this.routerSession.configurationFinished();
 		}
 		catch (error) {
 			this.log('reboot error', error);
@@ -56,19 +82,26 @@ class NetgearDriver extends Homey.Driver {
 
 	onPair(socket) {
 		socket.on('save', (data, callback) => {
-			const router = new NetgearRouter(data.password, data.host, data.username, Number(data.port));
+			const router = new NetgearRouter(data.password, data.username, data.host, Number(data.port));
 			this.log('save button pressed in frontend', router);
-			router.getInfo()
-				.then((result) => {
-					// console.log(result);
-					if (result.hasOwnProperty('SerialNumber')) {
-						callback(null, JSON.stringify(result));
-					} else { callback(true, 'No Netgear Model found'); }
-				})
-				.catch((error) => {
-					this.log('getInfo error', error);
-					callback(error, error);
-				});
+			router.login()
+			.then( () => {
+				router.getInfo()
+					.then((result) => {
+						// console.log(result);
+						if (result.hasOwnProperty('SerialNumber')) {
+							callback(null, JSON.stringify(result));
+						} else { callback(Error('No Netgear Model found')); }
+					})
+					.catch((error) => {
+						this.log('getInfo error', error);
+						callback(error);
+					});
+			})
+			.catch((error) => {
+				this.log('login error', error);
+				callback(error);
+			});
 		});
 	}
 

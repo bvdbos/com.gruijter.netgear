@@ -32,7 +32,7 @@ function testSettings () {
 			if (err) {
 				console.log(err);
 				console.log(result);
-				Homey.alert(err, 'error');
+				Homey.alert(err.message, 'error');
 			} else {
 				var info = JSON.parse(result);
 				Homey.alert(__('pair.start.success')+result, 'info');
@@ -88,7 +88,7 @@ function testSettings () {
 			</tr>
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.host">host</td>
-				<td><input id="host" type="text" value="routerlogin.net" placeholder="e.g. 192.168.1.1"/></td>
+				<td><input id="host" type="text" value="" placeholder="e.g. 192.168.1.1"/></td>
 			</tr>
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.port">port</td>

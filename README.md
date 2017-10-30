@@ -3,7 +3,7 @@
 App to make Homey interact with Netgear routers.
 
 It allows you to
-* see and act on when the internet connection is down
+* see and act on when the internet connection goes down
 * see and act on the internet upload and download speed
 * see and act on the number of attached devices
 * block and allow an attached device by MAC address
@@ -12,15 +12,15 @@ It allows you to
 ![image][mobile-card-image]
 
 ### Device setup in Homey ###
-To setup go to "Devices" and add the Netgear router by filling in the admin password. The other fields can be left on default, unless you know what you are doing :). It should be possible to add multiple netgear routers, but this is untested. After the router device is added successfully you can change the polling interval which is set to 1 minute as default.
+To setup go to "Devices" and add the Netgear router by filling in the admin password and the IP address. The other fields can be left on default, unless you know what you are doing :). It should be possible to add multiple Netgear routers, but this is untested. After the router device is added successfully you can change the polling interval which is set to 1 minute as default.
 
-**important settings in the router!**
-For Homey to get all the functionality you need to do some one time settings in the router. Depending on the routertype and firmware you might not have some of this functionality. Make sure you are on the latest router firmware.
+### One time setup of the router ###
+For Homey to get all the functionality you need to do some one time settings in the router. Depending on the router type and firmware you might not have some of this functionality. Make sure you are on the latest router firmware.
 - For up/download speed, enable the traffic statistics: routerlogin.net > advanced setup > traffic meter.
 - To be able to block or allow a device, enable access control: routerlogin.net > advanced > security > access control.
 
 ### Supported routers ###
-In general: If you can use the genie app to manage the router then my app will likely do something. The app has been tested with the Netgear R7000 router with firmware V1.0.9.6_1.2.19 and SOAP version 3. You can check your router version by browsing to http://routerlogin.net/currentsetting.htm. According to the NETGEAR Genie app description, the following routers might work:
+In general: If you can use the genie app to manage the router then my app will likely do something. The app has been tested with the Netgear R7000 router with firmware V1.0.9.12_1.2.23 and SOAP version 3.2. You can check your router version by browsing to http://routerlogin.net/currentsetting.htm. According to the NETGEAR Genie app description, the following routers might work:
 
 Wi-Fi Routers: Orbi AC1450 Centria (WNDR4700, WND4720) JNR1010 JNR3210 JR6150 JWNR2010 R6050 R6100 R6200 R6220 R6250 R6300 R6400 R6700 R6900 R7000 R7500 R7500 R7800 R7900 R8000 R8300 R8500 R9000 WNDR3400v2 WNDR3700v3 WNDR3800 WNDR4000 WNDR4300 WNDR4500 WNDRMAC WNR1000v2 WNR1500 WNR2020 WNR2020v2 WNR2000v3 WNR2200 WNR2500 WNR3500Lv2 WNR612v2 WNR614
 
@@ -45,8 +45,8 @@ If you really like the app you can buy me a beer.
 Version changelog
 
 ```
-v0.0.4	2017.08.08 Beta release
-to do: get trigger "new unknown device"
+v0.0.5	2017.10.29 Beta release
+to do: trigger "new unknown device", add device presence detection
 
 ```
 [forum]: https://forum.athom.com/discussion/3532
